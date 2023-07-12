@@ -1,0 +1,49 @@
+%% ProxVis
+% Displays the real time data of n proximity sensors
+clear; close all; clc;
+
+% Parameters
+    n = 4;
+    skinObj = serialport("COM5",9600);
+    skinObj.UserData = struct("Data",[],"Time",[]);
+    threshold = 100*ones();
+
+%Read in data real time
+    f = figure();
+    p = bar(1:n, 1:n);
+    ylabel("Sensed Capacitance");
+    xlabel("Sensor Number");
+    title("2x2 Skin Patch Proximity Sensing");
+    p.XDataSource = 'x2';
+    p.YDataSource = 'skinObj.UserData.Data';
+    ylimit = 0;
+    while true
+        readSkin(skinObj);
+        figure(f);
+        data = skinObj.UserData.Data;
+        x2 = 1:length(data);
+        ylimitTemp = max(data);
+        if ylimitTemp > ylimit
+            ylimit = ylimitTemp;
+            ylim([0,ylimit]);
+        end
+        refreshdata;
+    end
+
+
+% Reading in the data 
+function readSkin(skinObj)
+    data = readline(skinObj);
+    seperatedData = split(data, ',');
+    for i = 1:length(seperatedData) - 1
+        val = str2double(seperatedData(i));
+        if ~isnan(val)
+            skinObj.UserData.Data(i) = val;
+        end
+    end
+    skinObj.UserData.Time = str2double(seperatedData(end));
+end
+
+function filterVal = updateFilter(dataPoint)
+    
+end

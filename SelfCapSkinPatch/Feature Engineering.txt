@@ -1,0 +1,6 @@
+Features that can affect the predicted touch location of skin
+-Sensor values
+-Sensor noise
+-Object capactitance
+-Background capacitance 
+-Dielectric material inbetween 
