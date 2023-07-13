@@ -51,10 +51,10 @@ def isTouching(vals, threshold):
             
 
 # Function to animate the graph
-def animate(i, xs, ys1, ys2, ys3, ys4):
+def animate(i, xs, ys1, ys2, ys3, ys4, threshold):
     s = ser.readline().decode('utf-8').rstrip()
     vals = readSkin(s)
-    xs.append(vals[4])
+    xs.append(vals[4]/1000)
     ys1.append(vals[0])
     ys2.append(vals[1])
     ys3.append(vals[2])
@@ -69,17 +69,31 @@ def animate(i, xs, ys1, ys2, ys3, ys4):
 
     # Draw x and y lists
     ax.clear()
-    ax.plot(xs, ys1)
-    ax.plot(xs, ys2)
-    ax.plot(xs, ys3)
-    ax.plot(xs, ys4)
+    ax.plot(xs, ys1, label = "Sensor 1")
+    ax.plot(xs, ys2, label = "Sensor 2")
+    ax.plot(xs, ys3, label = "Sensor 3")
+    ax.plot(xs, ys4, label = "Sensor 4")
+    ax.plot([xs[0], xs[len(xs)-1]], [threshold, threshold], label = "Threshold", linestyle="--")
+
+    #Plot Labeling
+    ax.set_ylabel('Clock Cycles')
+    ax.set_xlabel('Time (s)')
+    ax.set_title('Sensed Capacitance')
+    legend = plt.legend()
+
+    #Connecting to ROS
+    #isTouched = isTouching(vals, threshold)
+    #touch_msg = Int8MultiArray()
+    #touch_msg.data = isTouched
+    #pub.publish(touch_msg)
+    #rate.sleep()
 
 
 # Ros Connection
-# pub = rospy.Publisher('chatter', String, queue_size=10)
+#pub = rospy.Publisher('chatter', String, queue_size=10)
 #pub = rospy.Publisher('/skin_touch', Int8MultiArray, queue_size=1)
 #rospy.init_node('robot_skin', anonymous=True)
-#rate = rospy.Rate(1def readSkin(s, plotData):
+#rate = rospy.Rate(100)
 
 ########## MAIN LOOP ###########
 # Flush bad data
@@ -88,8 +102,6 @@ while ser.is_open:
     tPrev = tCount
     tCount = readSkinReset(s, plotData, tCount)
     if tCount != tPrev:
-        print(tCount)
-        print(plotData[4][tCount]) 
         if plotData[4][tCount] < 200:
             break 
 plotData = [[0,0], [0,0], [0,0], [0,0], [0,0]]
@@ -108,15 +120,15 @@ ax.set_xlabel('Time (s)')
 ax.set_title('Sensed Capacitance')
 
 # Create the animation
-ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys1, ys2, ys3, ys4), interval=10)
+ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys1, ys2, ys3, ys4, threshold), interval=10)
 # Display the graph
 plt.show()
 
-while ser.is_open:
-    s = ser.readline().decode('utf-8').rstrip()
-    vals = readSkin(s)
-    isTouched = isTouching(vals, threshold)
-    plt.show()
+#while ser.is_open:
+    #s = ser.readline().decode('utf-8').rstrip()
+    #vals = readSkin(s)
+    #isTouched = isTouching(vals, threshold)
+    #plt.show()
     #touch_msg = Int8MultiArray()
     #touch_msg.data = isTouched
     #pub.publish(touch_msg)
