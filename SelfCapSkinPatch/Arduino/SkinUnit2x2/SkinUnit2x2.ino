@@ -26,8 +26,7 @@ void setup()
   caps4.set_CS_AutocaL_Millis(0xFFFFFFFF); 
 
   readings = 0;
-   Serial.begin(9600);
-   Serial.println("CS_1, CS_2, CS_3, CS_4, Time (ms)");
+   Serial.begin(115200);
 }
 
 void loop()                    
@@ -56,5 +55,5 @@ void loop()
   // Serial.print("\n");
   // Serial.print(readings[0] + delim + readings[3] + delim + readings[6]);                  // print sensor output 1
   // Serial.print("\n");
-  delay(100);                             // arbitrary delay to limit data to serial port 
+  delay(50);                             // arbitrary delay to limit data to serial port 
 }

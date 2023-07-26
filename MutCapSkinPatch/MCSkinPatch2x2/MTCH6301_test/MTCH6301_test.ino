@@ -26,7 +26,7 @@ bool mtch_reset() {
     digitalWrite(RESET, 1);
     delay(5);
     while (digitalRead(INT)) {
-        Serial.print(".\n");
+        Serial.print(".");
         delay(5);
     }
     Serial.print("\n");

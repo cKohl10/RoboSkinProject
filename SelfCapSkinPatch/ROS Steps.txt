@@ -1,0 +1,8 @@
+Ros Steps
+1. Launch Robot:
+1a. control box power
+1b. go to ip address
+1c. unlock joints
+1d. activate franka fci
+1e. move to start command
+1f. roslaunch franka_example_controllers
