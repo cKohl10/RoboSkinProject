@@ -3,10 +3,12 @@
 clear; close all; clc;
 
 % Parameters
-    n = 4;
-    skinObj = serialport("COM5",9600);
+    param = getParams();
+    n = param.numSensors;
+    skinObj = serialport(param.serialPort,param.baudRate);
     skinObj.UserData = struct("Data",[],"Time",[], "isTouched", []);
-    threshold = 100;
+    threshold = param.threshold;
+    noiseProfile = calibrateSkin(skinObj);
 
 %Read in data real time
     f = figure();
@@ -29,7 +31,9 @@ clear; close all; clc;
     ylimit = 1;
 
     while true
-        readSkin(skinObj, threshold);
+        flush(skinObj);
+        readSkin(skinObj, threshold, noiseProfile);
+        readSkin(skinObj, threshold, noiseProfile);
         figure(f);
         data = skinObj.UserData.Data;
         x2 = 1:length(data);
@@ -45,15 +49,15 @@ clear; close all; clc;
 
 
 % Reading in the data 
-function readSkin(skinObj, threshold)
+function readSkin(skinObj, threshold, noiseProfile)
     data = readline(skinObj);
     seperatedData = split(data, ',');
-    for i = 1:length(seperatedData) - 1
+    for i = 1:length(seperatedData)
         val = str2double(seperatedData(i));
         if ~isnan(val)
-            skinObj.UserData.Data(i) = val;
-            skinObj.UserData.isTouched(i) = val>threshold;
+            skinObj.UserData.Data(i) = val - noiseProfile(i);
+            skinObj.UserData.isTouched(i) = val - noiseProfile(i)>threshold;
         end
     end
-    skinObj.UserData.Time = str2double(seperatedData(end));
+    %skinObj.UserData.Time = str2double(seperatedData(end));
 end

@@ -8,16 +8,22 @@
 %Note, this will not overide any saved data and will create a new file
 clc; close all; clear;
 
+%Calibrate?
+calibrate = 1;
+
 % Parameters
-s = 4; %number of sensors
-pl = 14; %Length number of data points
-pw = 14; %Width number of data points
-sampleSize = 16;
-noiseSample = 100;
+param = getParams();
+TX = param.TX;
+RX = param.RX;
+s = RX*TX; %number of sensors
+pl = TX; %Length number of data points
+pw = RX; %Width number of data points
+sampleSize = 50;
+noiseSample = param.calibSamples;
 description = input("Data Description: \n", "s");
 
 %Struct Setup and serial communication
-skinObj = serialport("COM5",9600);
+skinObj = serialport(param.serialPort,param.baudRate);
 skinObj.UserData = struct("Data",[],"Time",[]);
 totalP = pl*pw;
 dataRaw = repmat(struct('Data',[]), totalP, 1 );
@@ -25,6 +31,7 @@ SkinDataSet.desc = description;
 SkinDataSet.sensNum = s;
 SkinDataSet.resWidth = pw;
 SkinDataSet.resLength = pl;
+SkinDataSet.noiseRaw = zeros(noiseSample, s);
 
 % Figure to detect keyboard input
 f = figure();
@@ -32,10 +39,10 @@ currP = 1;
 %load chirp;
 %y(1000:end) = [];
 [y, Fs] = audioread('Resources/nextSound.wav');
-sound(y,Fs);
+%sound(y,Fs);
 
 % Saving Data
-fileName = "Data/SkinPatch" + sqrt(s) + "x" + sqrt(s) + "_" + totalP + "Data";
+fileName = "Data/SkinPatch" + RX + "RXx" + TX + "TX_" + totalP + "Data";
 fileType = ".mat";
 count = 1;
 path = fileName+count+fileType;
@@ -63,18 +70,22 @@ end
 % 
 
 %Logging the noise profile
-for i = 1:noiseSample
-    SkinDataSet.noiseRaw(:,i) = readSkin(skinObj);
-end
-    SkinDataSet.noiseProfile = mean(SkinDataSet.noiseRaw, 2);
+[noiseProfile, SkinDataSet.noiseRaw] = calibrateSkin(skinObj);
+SkinDataSet.noiseProfile = noiseProfile;
 
 % Process of logging the data
 for l = 1:pl
     for w = 1:pw
         fprintf("Point Pos: %0.0f, %0.0f \n", l, w);
         wait = waitforbuttonpress;
+        flush(skinObj)
+        temp = readSkin(skinObj);
         for i = 1:sampleSize
-            dataRaw(currP).data(i,:) = readSkin(skinObj);
+            if calibrate 
+                dataRaw(currP).data(i,:) = readSkin(skinObj) - noiseProfile;
+            else
+                dataRaw(currP).data(i,:) = readSkin(skinObj);
+            end
         end
         dataRaw(currP).pos = [l, w];
         currP = currP + 1;
@@ -83,6 +94,7 @@ for l = 1:pl
 end
 
 %Intermitent Save
+fprintf("Data Collection Complete");
 SkinDataSet.dataRaw = dataRaw;
 save(path, "SkinDataSet");
 %% Break
