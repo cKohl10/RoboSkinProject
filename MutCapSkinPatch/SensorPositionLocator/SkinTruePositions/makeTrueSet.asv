@@ -1,0 +1,21 @@
+%%% Make true set %%%
+% Used to identify true sensor positions for comparison
+
+clc; clear; close all;
+
+% Replace data with needed values
+
+trueSet.name = "BlueLinearPatch";
+trueSet.desc = "Linear vaired sensor locations, 2x11";
+trueSet.Tx = 11;
+trueSet.Rx = 2;
+
+%Positioning (in)
+xLine = (3/8)+;
+yLine = [0.313, 0.563, .812] - (1/32);
+[X,Y] = meshgrid(xLine, yLine);
+x = X(:);
+y = Y(:);
+trueSet.posReal = [x';y'];
+
+save(trueSet.name + ".mat", "trueSet")

@@ -2,6 +2,10 @@
 # Carson Kohlbrenner
 # 7/20/2023
 
+######### Arduino Code #########
+#      Muca_Raw_Basic.ino
+
+
 # Making the serial connection
 import serial
 import numpy as np
@@ -18,6 +22,7 @@ serialPort = 'COM4' #Windows
 ser = serial.Serial(serialPort, 115200) #Serial port /dev/ttyACM0, 9600 baud
 num_TX = 11
 num_RX = 2
+threshold = 100
 numSensors = num_TX*num_RX
 calibVals = [[0 for j in range(num_RX)] for i in range(num_TX)]
 heatData = [[0 for j in range(num_RX)] for i in range(num_TX)]
@@ -44,11 +49,13 @@ def readSkin(s):
 
 #This function is used to flush out bad input data and to calibrate the sensors to zero when not touching
 def reset():
+    print("Flushing bad data...")
     for i in range(20):
         s = ser.readline()
 
     #Calibration: number in range below is how many samples to calibrate with
-    for i in range(30):
+    print("Calibrating...")
+    for i in range(50):
         s = ser.readline().decode('utf-8').rstrip()
         vals = readSkin(s)
 
@@ -71,7 +78,13 @@ def reset():
             
 
 # Function to animate the graph
-def animate(i, xs, calibVals):
+def animate(i, xs, calibVals, threshold):
+
+    #Kills the program when the figure is closed
+    nums = plt.get_fignums()
+    if 1 not in nums:
+        exit()
+
     s = ser.readline().decode('utf-8').rstrip()
     vals = readSkin(s)
     while(vals == -1):
@@ -89,7 +102,7 @@ def animate(i, xs, calibVals):
 
     #Generating the plots
     #vmin and vmax are the input max and mins for color
-    plt.imshow(heatData, cmap='autumn', vmin=0, vmax = 400)
+    plt.imshow(heatData, cmap='autumn', vmin=0, vmax = threshold)
     #ax = sns.heatmap(heatData, cmap='autumn')
 
     #Plot Labeling
@@ -126,7 +139,7 @@ ax.set_title('Sensed Capacitance')
 
 # Create the animation
 calibVals = reset()
-ani = animation.FuncAnimation(fig, animate, fargs=(xs, calibVals), interval=10, cache_frame_data=False)
+ani = animation.FuncAnimation(fig, animate, fargs=(xs, calibVals, threshold), interval=10, cache_frame_data=False)
 # Display the graph
 plt.show()
 
