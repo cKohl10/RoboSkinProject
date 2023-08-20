@@ -3,15 +3,16 @@
 clc; close all; clear;
 
 set1 = ["Data/SkinPatch1x6_100_2.mat", "SkinTruePositions/Blue&WhiteVariedPatch.mat"];
+set2 = ["Data/SkinPatch1x6_52_2.mat", "SkinTruePositions/BlueLinearPatch.mat", "Data/SkinPatch1x6_52_2ErrorCompare.mat"];
 
 %Change this for different data sets
-set = set1;
+set = set2;
 
 load(set(1));
 load(set(2));
 
 %Ease of use
-sensorNum = 11;
+sensorNum = 12;
 ppi = 10;
 X = SkinDataSet.posLinAvgReal(1,:);
 Y = SkinDataSet.posLinAvgReal(2,:);
@@ -68,5 +69,17 @@ realSensorPos = trueSet.posReal(:, sensorNum);
     hold off;
 
 %%%%%% Error Table %%%%%%%
+    load(set(3))
+
     f3 = figure();
+    h = heatmap(errorObj.error*2.54);
+    colormap(h,copper);
+    colormap(h, flipud(colormap(h)));
+    h.Title = "Total Prediction Error (cm)";
+    h.XData = errorObj.threshold(1,:)*100;
+    h.YData = errorObj.ppi(:,1)';    
+    h.XLabel = "Weighted Area Threshold (% Max)";
+    h.YLabel = "Interpolated Pixels Per cm";
+
+%%%%% Finger Snapshot %%%%%%
     
