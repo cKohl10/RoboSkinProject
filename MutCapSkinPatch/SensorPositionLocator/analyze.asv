@@ -2,29 +2,29 @@
 
 clc; close all; clear;
 
-set1 = ["Data/SkinPatch1x6_100_2.mat", "SkinTruePositions/Blue&WhiteVariedPatch.mat"];
+set1 = ["Data/SkinPatch1x6_100_2.mat", "SkinTruePositions/Blue&WhiteVariedPatch.mat", "Data/SkinPatch1x6_100_2ErrorCompare.mat"];
 set2 = ["Data/SkinPatch1x6_52_2.mat", "SkinTruePositions/BlueLinearPatch.mat", "Data/SkinPatch1x6_52_2ErrorCompare.mat"];
 
 %Change this for different data sets
-set = set2;
+set = set1;
 
 load(set(1));
 load(set(2));
 
 %Ease of use
-sensorNum = 12;
-ppi = 10;
-X = SkinDataSet.posLinAvgReal(1,:);
-Y = SkinDataSet.posLinAvgReal(2,:);
-Z = SkinDataSet.dataAvgsLin(sensorNum, :);
+sensorNum = 14;
+ppi = 100;
+X = SkinDataSet.posLinAvgReal(1,:)*2.54;
+Y = SkinDataSet.posLinAvgReal(2,:)*2.54;
+Z = SkinDataSet.dataAvgsLin(sensorNum, :)./20;
 realSensorPos = trueSet.posReal(:, sensorNum);
 
 %%%%%% Surface Plot %%%%%%%%%
     %Interpolated data
     F = scatteredInterpolant(X', Y', Z');
     F.Method = 'natural';
-    newX = (0:(1/ppi):SkinDataSet.lengthIn);
-    newY = (SkinDataSet.widthIn:-(1/ppi):0);
+    newX = (0:(1/ppi):SkinDataSet.lengthIn*2.54);
+    newY = (SkinDataSet.widthIn*2.54:-(1/ppi):0);
     [Xgrid,Ygrid] = meshgrid(newX, newY); %Make new locations to interpolate at
     xlin = Xgrid(:); %Flatten the matrix
     ylin = Ygrid(:);
@@ -44,14 +44,24 @@ realSensorPos = trueSet.posReal(:, sensorNum);
     
     f1 = figure();
     hold on;
-    surfc(Xgrid,Ygrid,Zgrid/100);
+    cm = hot(100);
+    colormap(f1, cm(1:70,:));
+    sc = surfc(Xgrid,Ygrid,Zgrid, 'EdgeColor','none');
+    s = scatter3(X,Y,Z,50,'cyan', 'filled', 'MarkerEdgeColor','k');
+    [M,c] = contour3(Xgrid, Ygrid, Zgrid, [0.6*max(Z),0.6*max(Z)], 'EdgeColor', 'green', 'LineWidth', 3);
+    title("Interpolated Sensor " + sensorNum + " Data");
+    xlabel("Length (cm)");
+    ylabel("Width (cm)");
+    zlabel("Sensor Value (Arbitrary Units)");
+    legend([s, c], "Experimental Values", "Threshold");
     axis equal;
+    grid on;
     hold off;
 
 %%%%% Asymptotic relationship graph %%%%%%%
-    relDistX = abs(X - realSensorPos(1));
-    relDistY = abs(Y - realSensorPos(2));
-    relDist = sqrt(relDistX.^2 + relDistY.^2)*2.54; %cm
+    relDistX = abs(X - realSensorPos(1)*2.54);
+    relDistY = abs(Y - realSensorPos(2)*2.54);
+    relDist = sqrt(relDistX.^2 + relDistY.^2); %cm
 
     xFit = linspace(min(relDist), max(relDist), 1000);
     p = polyfit(relDist, Z, 6);
@@ -77,9 +87,12 @@ realSensorPos = trueSet.posReal(:, sensorNum);
     colormap(h, flipud(colormap(h)));
     h.Title = "Total Prediction Error (cm)";
     h.XData = errorObj.threshold(1,:)*100;
-    h.YData = errorObj.ppi(:,1)';    
+    h.YData = round(errorObj.ppi(:,1)'/ 2.54);    
     h.XLabel = "Weighted Area Threshold (% Max)";
     h.YLabel = "Interpolated Pixels Per cm";
 
 %%%%% Finger Snapshot %%%%%%
-    
+    f4 = figure();
+    hold on;
+    imshow(SkinDataSet.dataRaw(30).img);
+    title("Data Log Snaphsot");
