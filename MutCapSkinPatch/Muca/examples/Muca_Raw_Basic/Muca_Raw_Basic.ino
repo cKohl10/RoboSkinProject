@@ -3,8 +3,8 @@
 Muca muca;
 
 const int BYTE_NUM = 1; // NUM_TX*NUM_RX + 2
-const int num_TX = 11;
-const int num_RX = 2;
+const int num_TX = 10;
+const int num_RX = 3;
 
 void setup() {
   Serial.begin(115200);
