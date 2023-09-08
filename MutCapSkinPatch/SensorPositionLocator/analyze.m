@@ -88,7 +88,7 @@ realSensorPos = trueSet.posReal(:, sensorNum);
     relDist = sqrt(relDistX.^2 + relDistY.^2); %cm
     relErr = sqrt(2)*SkinDataSet.deltaX*ones(size(relDist));
 
-    xFit = linspace(min(relDist), max(relDist), 1000);
+    xFit = linspace(min(relDist), 15, 1000);
 
     p = polyfit(relDist, Z, 6);
     zFit = polyval(p, xFit);
@@ -96,23 +96,31 @@ realSensorPos = trueSet.posReal(:, sensorNum);
 
     % Expected values
     a = 160;
-    b = 0;
-    c = -12;
-    d = 1.1;
+    b = -0.1;
+    c = -4;
+    d = 1.5;
     expectFunc = @(a,b,c,d,x) a./(b+d*x) + c;
     expectData = expectFunc(a,b,c,d,xFit);
 
     f2 = figure();
     hold on;
     grid on;
-    plt = plot(xFit, expectData, 'LineWidth', 3);
     %errorbar(relDist, Z, zErr,zErr,relErr,relErr,'.');
-    scatter(relDist,Z,40, 'filled', 'MarkerEdgeColor', 'k');
+    for i = 1:SkinDataSet.sensNum
+        Z_temp = SkinDataSet.dataAvgsLin(i, :);
+        realSensorPos = trueSet.posReal(:, i);
+        relDistX = abs(X - realSensorPos(1));
+        relDistY = abs(Y - realSensorPos(2));
+        relDist = sqrt(relDistX.^2 + relDistY.^2); %cm
+
+        sc(i) = scatter(relDist,Z_temp, 20, 'k', 'x');
+    end
+    plt = plot(xFit, expectData, 'Color', [0.9290 0.6940 0.1250], 'LineWidth', 2);
     %plot(xFit, zFit, 'LineWidth', 2);
-    legend(["Ideal Relationship", "Experimental Data"]);
-    title("Sensor " + sensorNum +" Reading vs Surface Distance");
+    legend([sc(1), plt],["Experimental Data", "Fitted Trend"]);
+    title("Sensor Reading vs Probe Distance");
     xlabel("Point Distance from Sensor True Position (cm)");
-    ylabel("Sensor Value (Arbitrary Units)");
+    ylabel("Sensor Value");
     hold off;
 
 %%%%%% Error Table %%%%%%%
