@@ -30,29 +30,24 @@ realSensorPos = trueSet.posReal(:, sensorNum);
     newX = (0:(1/ppcm):SkinDataSet.lengthIn*2.54);
     newY = (SkinDataSet.widthIn*2.54:-(1/ppcm):0);
     [Xgrid,Ygrid] = meshgrid(newX, newY); %Make new locations to interpolate at
-    Xgrid2 = Xgrid;
-    Ygrid2 = Ygrid;
     xlin = Xgrid(:); %Flatten the matrix
     ylin = Ygrid(:);
     DataInterp = F([xlin, ylin]); %evaluate interpolation
     
     %For testing interpolation
     %save("testing.mat", "DataInterp", "F", "newX", "newY", "X", "Y");
-
-        thresh = 0.65*max(Z);
     
     %Organizing data into heat map
     currP = 1;
     for x = 1:length(newX)
         for y = 1:length(newY)
             if DataInterp(currP) >= thresh
-                Zgrid2(y,x) = DataInterp(currP);
+                Zgrid(y,x) = DataInterp(currP);
             else 
-                Zgrid2(y,x) = 200;
-                Xgrid2(y,x) = 10;
-                Ygrid2(y,x) = 2;
+                Zgrid(y,x) = 200;
+                Xgrid(x,y) = 
+
             end
-            Zgrid(y,x) = DataInterp(currP);
             currP = currP + 1;
         end
     end
@@ -65,14 +60,16 @@ realSensorPos = trueSet.posReal(:, sensorNum);
     % Define the faces of the rectangle
     faces = [1 2 3 4; 5 6 7 8; 1 2 6 5; 1 4 8 5; 3 4 8 7; 2 3 7 6];
 
+    thresh = 0.65*max(Z);
+
     
     f1 = figure();
     hold on;
     cm = hot(100);
     colormap(f1, cm(1:70,:));
     sc = surf(Xgrid,Ygrid,Zgrid, 'EdgeColor','none');
-    alpha(sc, 1);
-    sc = surf(Xgrid2,Ygrid2,Zgrid2, 'EdgeColor','none');
+    alpha(sc, 0.5);
+    %sc2 = surf(Xgrid(Zgrid>=thresh),Ygrid(Zgrid>=thresh),Zgrid(Zgrid>=thresh), 'EdgeColor','none');
     s = scatter3(X,Y,Z,40,'c', 'filled', 'MarkerEdgeColor', 'k', 'LineWidth', 1);%, 'MarkerEdgeColor','k');
     %ps = scatter3(trueSet.posReal(1,sensorNum), trueSet.posReal(2,sensorNum)+error(2).value(1), 0, 200, 'g', 'filled', 'MarkerEdgeColor','k');
     %plot3([trueSet.posReal(1,sensorNum), trueSet.posReal(1,sensorNum)], ...
@@ -89,7 +86,7 @@ realSensorPos = trueSet.posReal(:, sensorNum);
     ylabel("Width (cm)");
     zlabel("Sensor Value (Arbitrary Units)");
     %legend([s, c, ps], "Experimental Values", "65% Threshold", "Prediction Location");
-    legend([s, sc, rs, c], "Experimental Values", "Interpolated Values", "Sensor " + sensorNum + " Real Position", "Threshold Level");
+    legend([s, sc, rs], "Experimental Values", "Interpolated Values", "Sensor " + sensorNum + " Real Position");
     daspect([1,1,zFactor]);
     zlim([zBox-1,300]);
     grid on;
